@@ -5,9 +5,7 @@
 name: Chrome Remote Desktop GUI Server
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:  # Also allows manual trigger
+  workflow_dispatch:  # Manual only - run when you have a fresh CRD_AUTH_CODE secret
 
 jobs:
   gui-server:
@@ -45,10 +43,16 @@ jobs:
           sudo usermod -aG chrome-remote-desktop $USER
 
       - name: Authorize Chrome Remote Desktop and set PIN
+        env:
+          CRD_AUTH_CODE: ${{ secrets.CRD_AUTH_CODE }}
         run: |
+          if [ -z "$CRD_AUTH_CODE" ]; then
+            echo "::error::Add CRD_AUTH_CODE secret first! Get a fresh code from https://remotedesktop.google.com/headless (Begin → Authorize), then Settings → Secrets → New repository secret"
+            exit 1
+          fi
           echo -e "321654\n321654" | \
             DISPLAY= /opt/google/chrome-remote-desktop/start-host \
-              --code="4/0ASc3gC1FZMkKcPoTU3WJT_FoLgZLjOjHDqN-jMy1J4EAzYQzrZf4Ek9p_d1c6SHsa2mR8g" \
+              --code="$CRD_AUTH_CODE" \
               --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
               --name=$(hostname)
 

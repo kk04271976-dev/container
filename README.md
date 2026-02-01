@@ -20,23 +20,23 @@ git remote set-url origin https://kk04271976-dev:YOUR_TOKEN@github.com/kk0427197
 
 > ⚠️ **Security:** If you shared your GitHub token, revoke it at [github.com/settings/tokens](https://github.com/settings/tokens) and create a new one.
 
-### 2. GitHub Secrets (required)
+### 2. GitHub Secret (required)
 
-Add these in **Settings → Secrets and variables → Actions**:
+Add **one** secret in **Settings → Secrets and variables → Actions**:
 
 | Secret | Value |
 |--------|-------|
-| `CRD_AUTH_CODE` | Your one-time auth code from [remotedesktop.google.com/headless](https://remotedesktop.google.com/headless) |
-| `CRD_PIN` | `321654` (6-digit PIN for remote desktop access) |
+| `CRD_AUTH_CODE` | Fresh auth code from [remotedesktop.google.com/headless](https://remotedesktop.google.com/headless) |
 
-**Get a fresh auth code:** Visit https://remotedesktop.google.com/headless, click Begin → Next → Authorize, then copy the `--code="..."` value. Codes expire in minutes and are single-use.
+**Get a fresh code:** Visit https://remotedesktop.google.com/headless → Begin → Next → Authorize → copy the `--code="..."` value. **Codes expire in ~5 minutes and are single-use** — get a new one each time before running. PIN is hardcoded as `321654`.
 
 ### 3. Run the workflow
 
-1. Go to **Actions** tab → **Chrome Remote Desktop GUI Server**
-2. Click **Run workflow**
-3. When the job starts, connect at https://remotedesktop.google.com/access
-4. Enter PIN: `321654`
+1. Get a **fresh** auth code from https://remotedesktop.google.com/headless (Begin → Authorize)
+2. Update **CRD_AUTH_CODE** secret with the new code (Settings → Secrets)
+3. Go to **Actions** → **Chrome Remote Desktop GUI Server** → **Run workflow**
+4. When the job starts, connect at https://remotedesktop.google.com/access
+5. Enter PIN: `321654`
 
 ## Notes
 
