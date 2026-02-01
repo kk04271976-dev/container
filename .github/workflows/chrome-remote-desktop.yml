@@ -5,7 +5,9 @@
 name: Chrome Remote Desktop GUI Server
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  push:
+    branches: [main]
+  workflow_dispatch:  # Also allows manual trigger
 
 jobs:
   gui-server:
