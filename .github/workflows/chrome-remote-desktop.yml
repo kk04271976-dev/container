@@ -41,6 +41,7 @@ jobs:
 
       - name: Add user to chrome-remote-desktop group
         run: |
+          sudo groupadd chrome-remote-desktop 2>/dev/null || true
           sudo usermod -aG chrome-remote-desktop $USER
 
       - name: Authorize Chrome Remote Desktop and set PIN
