@@ -18,7 +18,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget
+          sudo apt-get install -y wget expect
 
       - name: Install Chrome Remote Desktop (Debian package)
         run: |
@@ -46,11 +46,17 @@ jobs:
 
       - name: Authorize Chrome Remote Desktop and set PIN
         run: |
-          echo -e "321654\n321654" | \
-            DISPLAY= /opt/google/chrome-remote-desktop/start-host \
+          expect << 'EXPECT_EOF'
+            spawn env DISPLAY= /opt/google/chrome-remote-desktop/start-host \
               --code="4/0ASc3gC0fy-oaC4iI5LaLdZlUSqUCZEBlsRWeurZslCEWxPH9wUQXY9I4SoZ2DoQ3Lh9V2A" \
               --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
-              --name=$(hostname)
+              --name=github-actions
+            expect "Enter a PIN of at least six digits:"
+            send "321654\r"
+            expect "Enter the same PIN again:"
+            send "321654\r"
+            expect eof
+          EXPECT_EOF
 
       - name: Keep session alive (connect at remotedesktop.google.com)
         run: |
