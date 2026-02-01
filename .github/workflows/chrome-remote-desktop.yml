@@ -1,0 +1,63 @@
+# Chrome Remote Desktop - Free GUI Container Server
+# Runs on GitHub Actions Ubuntu runner with XFCE + Chrome Remote Desktop
+# Note: GitHub-hosted runners are ephemeral - session ends when job completes or times out (6h max)
+
+name: Chrome Remote Desktop GUI Server
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  gui-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # Max 6 hours (GitHub limit)
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+
+      - name: Install Chrome Remote Desktop (Debian package)
+        run: |
+          cd /tmp
+          sudo wget -q https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
+          sudo dpkg -i chrome-remote-desktop_current_amd64.deb || true
+          sudo apt-get install -y -f
+
+      - name: Install XFCE GUI environment
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            xfce4 \
+            xfce4-goodies \
+            desktop-base \
+            xscreensaver
+
+      - name: Configure Chrome Remote Desktop for XFCE
+        run: |
+          sudo bash -c 'echo "exec /etc/X11/Xsession /usr/bin/xfce4-session" > /etc/chrome-remote-desktop-session'
+
+      - name: Add user to chrome-remote-desktop group
+        run: |
+          sudo usermod -aG chrome-remote-desktop $USER
+
+      - name: Authorize Chrome Remote Desktop and set PIN
+        env:
+          CRD_AUTH_CODE: ${{ secrets.CRD_AUTH_CODE }}
+          CRD_PIN: ${{ secrets.CRD_PIN }}
+        run: |
+          if [ -z "$CRD_AUTH_CODE" ] || [ -z "$CRD_PIN" ]; then
+            echo "::error::Add CRD_AUTH_CODE and CRD_PIN to GitHub Secrets (Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+          echo -e "${CRD_PIN}\n${CRD_PIN}" | \
+            DISPLAY= /opt/google/chrome-remote-desktop/start-host \
+              --code="${CRD_AUTH_CODE}" \
+              --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
+              --name=$(hostname)
+
+      - name: Keep session alive (connect at remotedesktop.google.com)
+        run: |
+          echo "Chrome Remote Desktop is ready! Connect at https://remotedesktop.google.com/access"
+          echo "Session will stay alive for up to 6 hours..."
+          while true; do sleep 300; done
