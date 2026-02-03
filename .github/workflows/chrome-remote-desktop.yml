@@ -45,10 +45,16 @@ jobs:
           sudo usermod -aG chrome-remote-desktop $USER
 
       - name: Authorize Chrome Remote Desktop and set PIN
+        env:
+          CRD_AUTH_CODE: ${{ secrets.CRD_AUTH_CODE }}
         run: |
-          expect << 'EXPECT_EOF'
+          if [ -z "$CRD_AUTH_CODE" ]; then
+            echo "::error::CRD_AUTH_CODE secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          expect << EXPECT_EOF
             spawn env DISPLAY= /opt/google/chrome-remote-desktop/start-host \
-              --code="4/0ASc3gC0fy-oaC4iI5LaLdZlUSqUCZEBlsRWeurZslCEWxPH9wUQXY9I4SoZ2DoQ3Lh9V2A" \
+              --code="$CRD_AUTH_CODE" \
               --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
               --name=github-actions
             expect "Enter a PIN of at least six digits:"
